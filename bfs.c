@@ -1,76 +1,51 @@
 #include <stdio.h>
-#include <stdlib.h>
+#define max_v 100
 
-#define MAX 10
-
-struct queue {
-    int items[MAX];
+struct Queue {
+    int data[max_v];
     int front;
     int rear;
 };
 
-struct queue* createqueue() {
-    struct queue* q = (struct queue*)malloc(sizeof(struct queue));
-    q->front = -1;
-    q->rear = -1;
-    return q;
+void ini_queue(struct Queue *queue) {
+    queue->front = 0;
+    queue->rear = -1;
 }
 
-void enqueue(struct queue* q, int value) {
-    if (q->rear == MAX - 1)
-        printf("Queue is full\n");
-    else {
-        if (q->front == -1)
-            q->front = 0;
-        q->rear++;
-        q->items[q->rear] = value;
+int isEmpty(struct Queue *queue) {
+    return queue->front > queue->rear;
+}
+
+void enqueue(struct Queue *queue, int vertex) {
+    if (queue->rear >= max_v - 1) {
+        printf("Queue overflow\n");
+        return;
     }
+    queue->data[++queue->rear] = vertex;
 }
 
-int dequeue(struct queue* q) {
-    int item;
-    if (q->front == -1) {
-        printf("Queue is empty\n");
-        item = -1;
-    } else {
-        item = q->items[q->front];
-        q->front++;
-        if (q->front > q->rear) {
-            q->front = -1;
-            q->rear = -1;
-        }
+int dequeue(struct Queue *queue) {
+    if (isEmpty(queue)) {
+        printf("Queue underflow\n");
+        return -1; // Error value
     }
-    return item;
+    return queue->data[queue->front++];
 }
 
-struct matrixgraph {
-    int vertices;
-    int matrix[MAX][MAX];
-};
+void bfs(int start, int matrix[max_v][max_v], int visited[], int n) {
+    struct Queue queue;
+    ini_queue(&queue);
+    enqueue(&queue, start);
+    visited[start] = 1;
 
-void matrixgraph(struct matrixgraph* graph, int ver) {
-    graph->vertices = ver;
-    for (int i = 0; i < ver; i++) {
-        for (int j = 0; j < ver; j++) {
-            graph->matrix[i][j] = 0;
-        }
-    }
-}
+    printf("BFS Traversal: ");
+    while (!isEmpty(&queue)) {
+        int vertex = dequeue(&queue);
+        printf("%d ", vertex);
 
-void bfsMatrix(struct matrixgraph* graph, int startV) {
-    int visited[MAX] = {0};
-    struct queue* q = createqueue();
-
-    visited[startV] = 1;
-    enqueue(q, startV);
-
-    while (q->front != -1) {
-        int currentV = dequeue(q);
-        printf("%d ", currentV);
-
-        for (int i = 0; i < graph->vertices; i++) {
-            if (graph->matrix[currentV][i] == 1 && !visited[i]) {
-                enqueue(q, i);
+        for (int i = 0; i < n; i++) {
+            if (matrix[vertex][i] && !visited[i]) {
+                enqueue(&queue, i);
                 visited[i] = 1;
             }
         }
@@ -79,10 +54,9 @@ void bfsMatrix(struct matrixgraph* graph, int startV) {
 }
 
 int main() {
-    struct matrixgraph Matrix;
-    matrixgraph(&Matrix, 6);
+    int n = 6;
 
-    int adj_Matrix[6][6] = {
+    int matrix[max_v][max_v] = {
         {0, 1, 1, 0, 0, 0},
         {1, 0, 1, 1, 0, 0},
         {1, 1, 0, 1, 1, 0},
@@ -91,18 +65,15 @@ int main() {
         {0, 0, 0, 1, 1, 0}
     };
 
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++) {
-            Matrix.matrix[i][j] = adj_Matrix[i][j];
-        }
+    int visited[max_v];
+    for (int i = 0; i < n; i++) {
+        visited[i] = 0;
     }
 
-    int startV;
-    printf("Enter the starting vertex: ");
-    scanf("%d", &startV);
+    int start = 0;
 
-    printf("BFS traversal using adjacency matrix: ");
-    bfsMatrix(&Matrix, startV);
+    printf("BFS for the given matrix:\n");
+    bfs(start, matrix, visited, n);
 
     return 0;
 }
